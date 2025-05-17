@@ -1,45 +1,67 @@
 import { useState } from "react"
 import { baseballPositions } from "../constants/positions"
-import type { Position } from "../types"
-import { pickAndRemovePosition } from "../utils/positions"
+import { players } from "../constants/players"
+import type { Player, Position } from "../types"
+import { pickAndRemove } from "../utils"
+
+type Assignment = {
+	player: Player
+	position: Position
+}
 
 export function PositionPicker() {
-	// copie de la liste pour manipulation (on va enlever au fur et à mesure)
 	const [remainingPositions, setRemainingPositions] = useState<Position[]>([
 		...baseballPositions,
 	])
+	const [remainingPlayers, setRemainingPlayers] = useState<Player[]>([
+		...players,
+	])
 
-	const [chosenPositions, setChosenPositions] = useState<Position[]>([])
+	const [assignments, setAssignments] = useState<Assignment[]>([])
 
-	const handlePick = () => {
+	const handleAssign = () => {
 		const positionsCopy = [...remainingPositions]
-		const chosen = pickAndRemovePosition(positionsCopy)
+		const playersCopy = [...remainingPlayers]
 
-		if (chosen) {
-			setRemainingPositions(positionsCopy)
-			setChosenPositions([...chosenPositions, chosen])
-		} else {
+		const position = pickAndRemove(positionsCopy)
+		const player = pickAndRemove(playersCopy)
+
+		if (!position) {
 			alert("Plus de positions disponibles !")
+			return
 		}
+		if (!player) {
+			alert("Plus de joueurs disponibles !")
+			return
+		}
+
+		setRemainingPositions(positionsCopy)
+		setRemainingPlayers(playersCopy)
+		setAssignments([...assignments, { player, position }])
 	}
 
 	return (
 		<div>
-			<h2>Positions choisies :</h2>
+			<h2>Attributions :</h2>
 			<ul>
-				{chosenPositions.map((pos) => (
-					<li key={pos.id}>
-						{pos.name} ({pos.shortName})
+				{assignments.map(({ player, position }, index) => (
+					<li key={index}>
+						{player.firstName} {player.lastName} joue en{" "}
+						{position.name} ({position.shortName})
 					</li>
 				))}
 			</ul>
 
 			<button
-				onClick={handlePick}
-				disabled={remainingPositions.length === 0}>
-				Choisir une position aléatoire
+				onClick={handleAssign}
+				disabled={
+					remainingPositions.length === 0 ||
+					remainingPlayers.length === 0
+				}>
+				Assigner un joueur à une position
 			</button>
 
+			<h3>Joueurs restants : {remainingPlayers.length}</h3>
 			<h3>Positions restantes : {remainingPositions.length}</h3>
 		</div>
 	)
